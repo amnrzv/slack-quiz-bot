@@ -1,0 +1,29 @@
+{
+  "name": "slack-bot",
+  "version": "0.0.1",
+  "description": "Just a dumb bot... wanting some answers",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/amnrzv/slack-quiz-bot.git"
+  },
+  "keywords": [
+    "slack",
+    "quiz",
+    "bot"
+  ],
+  "author": "Amaan Rizvi",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/amnrzv/slack-quiz-bot/issues"
+  },
+  "homepage": "https://github.com/amnrzv/slack-quiz-bot#readme",
+  "dependencies": {
+    "body-parser": "^1.18.2",
+    "express": "^4.16.3",
+    "request": "^2.85.0"
+  }
+}
