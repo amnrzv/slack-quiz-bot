@@ -24,6 +24,8 @@
   "dependencies": {
     "body-parser": "^1.18.2",
     "express": "^4.16.3",
-    "request": "^2.85.0"
+    "js-htmlencode": "^0.3.0",
+    "node-fetch": "^2.1.2",
+    "uuid": "^3.2.1"
   }
 }
