@@ -4,7 +4,7 @@
   "description": "Just a dumb bot... wanting some answers",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest --watch"
   },
   "repository": {
     "type": "git",
@@ -27,5 +27,8 @@
     "js-htmlencode": "^0.3.0",
     "node-fetch": "^2.1.2",
     "uuid": "^3.2.1"
+  },
+  "devDependencies": {
+    "jest": "^22.4.3"
   }
 }
