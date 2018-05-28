@@ -5,22 +5,28 @@ const Content = require('./Content');
 const Utils = require('./Utils');
 
 const dataURL = `https://opentdb.com/api.php?amount=10&category=9&difficulty=easy&type=multiple`;
+const webhookURL = `https://hooks.slack.com/services/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`;
+const debug_mode = true;
 let questionsList = [];
 let shuffledAnswers = [];
 let currentIndex = -1;
 let answersList = {};
 
-exports.nextQuestion = (req, res) => {
-  console.log(currentIndex);
+exports.startQuiz = (req, res) => {
   res.status(200).end();
-
-  const reqBody = req.body;
-  const responseURL = reqBody.response_url;
-  if (reqBody.token != 'uXkcIJMRpYm5l3Kjr9yyYIBD') {
+  
+  const reqBodyToken = req.body.token;
+  const responseURL = req.body.response_url;
+  if (reqBodyToken != 'uXkcIJMRpYm5l3Kjr9yyYIBD') {
     res.status(403).end('Access forbidden');
     return;
   }
+  
+  displayQuestion(responseURL);
+};
 
+function displayQuestion(responseURL) {
+  console.log(currentIndex);
   if (currentIndex === -1 || currentIndex >= questionsList.length) {
     fetchQuestions().then(json => {
       currentIndex = 0;
@@ -29,17 +35,17 @@ exports.nextQuestion = (req, res) => {
         return { ...question, uid: uuid() };
       });
       answersList[questionsList[currentIndex].uid] = {};
-      const message = buildQuestion();
+      const question = buildQuestion();
       currentIndex++;
-      sendMessageToSlackResponseURL(responseURL, message);
+      sendQuestion(question);
     });
   } else {
     answersList[questionsList[currentIndex].uid] = {};
-    const message = buildQuestion();
+    const question = buildQuestion();
     currentIndex++;
-    sendMessageToSlackResponseURL(responseURL, message);
+    sendQuestion(question);
   }
-};
+}
 
 function buildQuestion() {
   const { question, uid, correct_answer, incorrect_answers } = questionsList[
@@ -56,24 +62,24 @@ function fetchQuestions() {
 exports.responseAction = (req, res) => {
   res.status(200).end(); // best practice to respond with 200 status
   const actionJSONPayload = JSON.parse(req.body.payload); // parse URL-encoded payload JSON string
-  const {callback_id:uid} = actionJSONPayload;
-  const {name:username} = actionJSONPayload.user;
-  const {name:answer} = actionJSONPayload.actions[0];
+  const { callback_id: uid } = actionJSONPayload;
+  const { name: username } = actionJSONPayload.user;
+  const { name: answer } = actionJSONPayload.actions[0];
   let message = {};
-  
-  if (answersList[uid][actionJSONPayload.user.id] !== undefined) {
+
+  if (answersList[uid][actionJSONPayload.user.id] !== undefined && !debug_mode) {
     message = {
       text: "You have answered already!",
       replace_original: false,
       response_type: 'ephemeral'
     }
 
-    sendMessageToSlackResponseURL(actionJSONPayload.response_url, message);
+    sendAnswer(actionJSONPayload.response_url, message);
     return;
   } else {
     answersList[uid][actionJSONPayload.user.id] = { answer, username };
   }
-  
+
   const selected_question = questionsList.filter(q => q.uid === uid)[0];
   const { question, correct_answer, incorrect_answers } = selected_question;
   if (htmlify.htmlDecode(correct_answer) === htmlify.htmlDecode(answer)) {
@@ -88,11 +94,12 @@ exports.responseAction = (req, res) => {
         attachment_type: 'default'
       }]
     }
+
+    setTimeout(() => displayQuestion(actionJSONPayload.response_url), 1500);
   }
-  else
-  {
+  else {
     message = Content.buildMessage(question, uid, shuffledAnswers);
-    
+
     Object.keys(answersList[uid]).forEach(response =>
       message.attachments.push({
         text: `${answersList[uid][response].username} : ${answersList[uid][response].answer}`
@@ -100,11 +107,19 @@ exports.responseAction = (req, res) => {
     );
   }
 
-  sendMessageToSlackResponseURL(actionJSONPayload.response_url, message);
+  sendAnswer(actionJSONPayload.response_url, message);
 };
 
-function sendMessageToSlackResponseURL(responseURL, JSONmessage) {
+function sendAnswer(responseURL, JSONmessage) {
   fetch(responseURL, {
+    method: 'POST',
+    body: JSON.stringify(JSONmessage),
+    headers: { 'Content-Type': 'application/json' }
+  }).catch(error => console.error(error));
+}
+
+function sendQuestion(JSONmessage) {
+  fetch(webhookURL, {
     method: 'POST',
     body: JSON.stringify(JSONmessage),
     headers: { 'Content-Type': 'application/json' }

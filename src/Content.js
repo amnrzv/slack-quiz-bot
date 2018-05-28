@@ -1,12 +1,10 @@
-const fetch = require('node-fetch');
 const htmlify = require('js-htmlencode');
-const Utils = require('./Utils');
 
-exports.buildMessage = function(question, uid, all_answers) {
+exports.buildMessage = function(question, uid, all_answers, should_replace = true) {
   return {
     text: 'This is your first interactive message',
     response_type: 'in_channel',
-    replace_original: true,
+    replace_original: should_replace,
     attachments: [
       {
         text: htmlify.htmlDecode(question),

@@ -2,9 +2,10 @@
   "name": "slack-bot",
   "version": "0.0.1",
   "description": "Just a dumb bot... wanting some answers",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
-    "test": "jest --watch"
+    "test": "jest --watch",
+    "start": "nodemon ."
   },
   "repository": {
     "type": "git",

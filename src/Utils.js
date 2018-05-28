@@ -4,6 +4,7 @@ exports.shuffle = function(array) {
   let index = 0;
   array.forEach((element, i) => {
     index = Math.floor(Math.random() * array.length);
+    // make sure none of the element are in their original positions.
     while (indices_array.includes(index) || index === i) {
       index = Math.floor(Math.random() * array.length);
     }
