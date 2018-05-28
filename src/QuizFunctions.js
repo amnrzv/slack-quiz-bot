@@ -11,9 +11,33 @@ let questionsList = [];
 let shuffledAnswers = [];
 let currentIndex = -1;
 let answersList = {};
+let quizOn = false;
+
+exports.stopQuiz = (req, res) => {
+  res.status(200).end();
+
+  const message = {
+    text: quizOn ? 'Quiz stopped.' : 'No quiz running currently.',
+    response_type: quizOn ? 'in_channel': 'ephemeral'
+  }
+  
+  if (quizOn) { quizOn = false; }
+  sendResponse(req.body.response_url, message);
+}
 
 exports.startQuiz = (req, res) => {
   res.status(200).end();
+  
+  if (quizOn) {
+    const message = {
+      text: 'A quiz is already running.'
+    }
+    
+    sendResponse(req.body.response_url, message);
+    return;
+  }
+
+  quizOn = true;
   
   const reqBodyToken = req.body.token;
   const responseURL = req.body.response_url;
@@ -22,10 +46,13 @@ exports.startQuiz = (req, res) => {
     return;
   }
   
-  displayQuestion(responseURL);
+  sendResponse(responseURL, {text: 'Alright... starting quiz. First question coming up.', response_type: 'in_channel'})
+  displayQuestion();
 };
 
-function displayQuestion(responseURL) {
+function displayQuestion() {
+  if (!quizOn) return;
+
   console.log(currentIndex);
   if (currentIndex === -1 || currentIndex >= questionsList.length) {
     fetchQuestions().then(json => {
@@ -37,13 +64,13 @@ function displayQuestion(responseURL) {
       answersList[questionsList[currentIndex].uid] = {};
       const question = buildQuestion();
       currentIndex++;
-      sendQuestion(question);
+      sendWebhook(question);
     });
   } else {
     answersList[questionsList[currentIndex].uid] = {};
     const question = buildQuestion();
     currentIndex++;
-    sendQuestion(question);
+    sendWebhook(question);
   }
 }
 
@@ -74,7 +101,7 @@ exports.responseAction = (req, res) => {
       response_type: 'ephemeral'
     }
 
-    sendAnswer(actionJSONPayload.response_url, message);
+    sendResponse(actionJSONPayload.response_url, message);
     return;
   } else {
     answersList[uid][actionJSONPayload.user.id] = { answer, username };
@@ -107,21 +134,23 @@ exports.responseAction = (req, res) => {
     );
   }
 
-  sendAnswer(actionJSONPayload.response_url, message);
+  sendResponse(actionJSONPayload.response_url, message);
 };
 
-function sendAnswer(responseURL, JSONmessage) {
+function sendResponse(responseURL, JSONmessage) {
   fetch(responseURL, {
     method: 'POST',
     body: JSON.stringify(JSONmessage),
     headers: { 'Content-Type': 'application/json' }
-  }).catch(error => console.error(error));
+  })
+  .catch(error => console.error(error));
 }
 
-function sendQuestion(JSONmessage) {
+function sendWebhook(JSONmessage) {
   fetch(webhookURL, {
     method: 'POST',
     body: JSON.stringify(JSONmessage),
     headers: { 'Content-Type': 'application/json' }
-  }).catch(error => console.error(error));
+  })
+  .catch(error => console.error(error));
 }

@@ -2,7 +2,7 @@ const htmlify = require('js-htmlencode');
 
 exports.buildMessage = function(question, uid, all_answers, should_replace = true) {
   return {
-    text: 'This is your first interactive message',
+    text: '',
     response_type: 'in_channel',
     replace_original: should_replace,
     attachments: [
