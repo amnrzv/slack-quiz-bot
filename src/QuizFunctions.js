@@ -18,35 +18,35 @@ exports.stopQuiz = (req, res) => {
 
   const message = {
     text: quizOn ? 'Quiz stopped.' : 'No quiz running currently.',
-    response_type: quizOn ? 'in_channel': 'ephemeral'
+    response_type: quizOn ? 'in_channel' : 'ephemeral'
   }
-  
+
   if (quizOn) { quizOn = false; }
   sendResponse(req.body.response_url, message);
 }
 
 exports.startQuiz = (req, res) => {
   res.status(200).end();
-  
+
   if (quizOn) {
     const message = {
       text: 'A quiz is already running.'
     }
-    
+
     sendResponse(req.body.response_url, message);
     return;
   }
 
   quizOn = true;
-  
+
   const reqBodyToken = req.body.token;
   const responseURL = req.body.response_url;
   if (reqBodyToken != 'uXkcIJMRpYm5l3Kjr9yyYIBD') {
     res.status(403).end('Access forbidden');
     return;
   }
-  
-  sendResponse(responseURL, {text: 'Alright... starting quiz. First question coming up.', response_type: 'in_channel'})
+
+  sendResponse(responseURL, { text: 'Alright... starting quiz. First question coming up.', response_type: 'in_channel' })
   displayQuestion();
 };
 
@@ -59,7 +59,7 @@ function displayQuestion() {
       currentIndex = 0;
       questionsList = json.results;
       questionsList = questionsList.map(question => {
-        return { ...question, uid: uuid() };
+        return Object.assign({}, question, { uid: uuid() });
       });
       answersList[questionsList[currentIndex].uid] = {};
       const question = buildQuestion();
@@ -143,7 +143,7 @@ function sendResponse(responseURL, JSONmessage) {
     body: JSON.stringify(JSONmessage),
     headers: { 'Content-Type': 'application/json' }
   })
-  .catch(error => console.error(error));
+    .catch(error => console.error(error));
 }
 
 function sendWebhook(JSONmessage) {
@@ -152,5 +152,5 @@ function sendWebhook(JSONmessage) {
     body: JSON.stringify(JSONmessage),
     headers: { 'Content-Type': 'application/json' }
   })
-  .catch(error => console.error(error));
+    .catch(error => console.error(error));
 }
